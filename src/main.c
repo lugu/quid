@@ -37,6 +37,7 @@ static void update_label(void);
 static cstr *score_str = CSTR_PLACEHOLDER;
 static cgui_cell *label = CGUI_CELL_PLACEHOLDER;
 static cgui_cell *score = CGUI_CELL_PLACEHOLDER;
+static cgui_cell *gauge = CGUI_CELL_PLACEHOLDER;
 static cgui_cell *button_1 = CGUI_CELL_PLACEHOLDER;
 static cgui_cell *button_2 = CGUI_CELL_PLACEHOLDER;
 static cgui_cell *button_3 = CGUI_CELL_PLACEHOLDER;
@@ -110,9 +111,10 @@ int main(int argc, char **argv) {
   cgui_init(argc, argv);
 
   window = cgui_window_create();
-  grid = cgui_grid_create(3, 3);
+  grid = cgui_grid_create(4, 3);
   score = cgui_label_create();
   label = cgui_label_create();
+  gauge = cgui_gauge_create();
   button_1 = cgui_button_create();
   button_2 = cgui_button_create();
   button_3 = cgui_button_create();
@@ -121,7 +123,6 @@ int main(int argc, char **argv) {
 
   /* Cell setup */
 
-  update_label();
   cgui_label_align(score, CGUI_ALIGN_RIGHT);
   cgui_label_align(label, CGUI_ALIGN_LEFT);
 
@@ -129,14 +130,22 @@ int main(int argc, char **argv) {
   cgui_button_on_click(button_2, on_click);
   cgui_button_on_click(button_3, on_click);
 
+  cgui_gauge_clamp_value(gauge, 0.0, 100.0);
+  cgui_gauge_hide_label(gauge);
+  cgui_gauge_rotate(gauge, CGUI_ROTATION_RIGHT);
+
+  update_label();
+
   /* Grid setup */
 
   cgui_grid_resize_col(grid, 0, 5);
   cgui_grid_resize_col(grid, 1, 5);
   cgui_grid_resize_col(grid, 2, 5);
+  cgui_grid_resize_col(grid, 3, 5);
 
   cgui_grid_assign_cell(grid, score, 0, 0, 3, 1);
   cgui_grid_assign_cell(grid, label, 0, 1, 3, 1);
+  cgui_grid_assign_cell(grid, gauge, 3, 0, 1, 3);
   cgui_grid_assign_cell(grid, button_1, 0, 2, 1, 1);
   cgui_grid_assign_cell(grid, button_2, 1, 2, 1, 1);
   cgui_grid_assign_cell(grid, button_3, 2, 2, 1, 1);
@@ -161,6 +170,7 @@ int main(int argc, char **argv) {
   cgui_grid_destroy(grid);
   cgui_cell_destroy(score);
   cgui_cell_destroy(label);
+  cgui_cell_destroy(gauge);
   cgui_cell_destroy(button_1);
   cgui_cell_destroy(button_2);
   cgui_cell_destroy(button_3);
@@ -190,6 +200,7 @@ static void update_label(void) {
   cstr_append(score_str, "score: ");
   cstr_append(score_str, player.score);
   cgui_label_set(score, cstr_chars(score_str));
+  cgui_gauge_set_value(gauge, 2.0 * player.score);
   question = generate_question();
   cgui_label_set(label, question.question);
   cgui_button_set_label(button_1, question.answers[0]);
