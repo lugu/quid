@@ -44,15 +44,26 @@ static game_t game;
 
 static question_t generate_question() {
   question_t q;
-  int num1 = rand() % 10; /* Generates random numbers between 0 and 9 */
-  int num2 = rand() % 10;
+  int num1 = rand() % 20; /* Generates random numbers between 0 and 9 */
+  int num2 = rand() % 20;
   int correct_answer = num1 + num2;
+  int incorrect_answer_1, incorrect_answer_2;
   snprintf(q.question, 10, "%d+%d", num1, num2);
   int correct_answer_index = rand() % 3;
   q.correct_answer = correct_answer_index;
-  snprintf(q.answers[0], 10, "%d", correct_answer - 1);
+  if (rand() % 2) {
+    incorrect_answer_1 = correct_answer - 1;
+  } else {
+    incorrect_answer_1 = correct_answer + 1;
+  }
+  if (rand() % 2) {
+    incorrect_answer_2 = correct_answer - 2;
+  } else {
+    incorrect_answer_2 = correct_answer + 2;
+  }
+  snprintf(q.answers[0], 10, "%d", incorrect_answer_1);
   snprintf(q.answers[1], 10, "%d", correct_answer);
-  snprintf(q.answers[2], 10, "%d", correct_answer + 1);
+  snprintf(q.answers[2], 10, "%d", incorrect_answer_2);
 
   /* Shuffle the answers array */
   if (correct_answer_index != 1) {
@@ -98,6 +109,7 @@ static void on_click(cgui_cell *c) {
 
 int main(int argc, char **argv) {
 
+  srand(time(NULL));
   cgui_init(argc, argv);
 
   game.score = 0;
