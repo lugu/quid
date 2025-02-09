@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(main)
+project(quid)
 
 if(DEFINED ENV{HOME})
   set(HOME_DIR "$ENV{HOME}")
@@ -29,8 +29,8 @@ add_library(cobj SHARED IMPORTED)
 set_target_properties(cobj PROPERTIES IMPORTED_LOCATION ${COBJ_LIBRARY})
 
 # Add source file.
-add_executable(main src/main.c)
-target_link_libraries(main cgui cobj) # Assumed cobject is a typo for cobobj
+add_executable(quid src/main.c)
+target_link_libraries(quid cgui cobj) # Assumed cobject is a typo for cobobj
 
 # Set runtime library path
-set_target_properties(main PROPERTIES LINKER_FLAGS "-Wl,-rpath,${PROJECT_LIBRARY_DIR}")
+set_target_properties(quid PROPERTIES LINKER_FLAGS "-Wl,-rpath,${PROJECT_LIBRARY_DIR}")
