@@ -12,10 +12,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/************************************************************************************************************/
-/************************************************************************************************************/
-/************************************************************************************************************/
-
 #include <cassette/cgui.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -23,45 +19,30 @@
 #include <string.h>
 #include <unistd.h>
 
-/************************************************************************************************************/
-/************************************************************************************************************/
-/************************************************************************************************************/
-
-static void on_click(cgui_cell *);
-static void update_label(void);
-
-/************************************************************************************************************/
-/************************************************************************************************************/
-/************************************************************************************************************/
-
-static cstr *score_str = CSTR_PLACEHOLDER;
-static cgui_cell *label = CGUI_CELL_PLACEHOLDER;
-static cgui_cell *score = CGUI_CELL_PLACEHOLDER;
-static cgui_cell *gauge = CGUI_CELL_PLACEHOLDER;
-static cgui_cell *button_1 = CGUI_CELL_PLACEHOLDER;
-static cgui_cell *button_2 = CGUI_CELL_PLACEHOLDER;
-static cgui_cell *button_3 = CGUI_CELL_PLACEHOLDER;
-static cgui_grid *grid = CGUI_GRID_PLACEHOLDER;
-static cgui_window *window = CGUI_WINDOW_PLACEHOLDER;
-
-/************************************************************************************************************/
-/* QUESTION */
-/************************************************************************************************************/
-
-/* Define question_t structure */
 typedef struct {
   char question[50];
-  int correct_answer; /* index of the correct answer. */
+  int correct_answer;
   char answers[3][10];
 } question_t;
 
-/* Define player_t structure */
 typedef struct {
   int score;
-} player_t;
+  cstr *score_str;
+  cgui_cell *label;
+  cgui_cell *score_label;
+  cgui_cell *gauge;
+  cgui_cell *button_1;
+  cgui_cell *button_2;
+  cgui_cell *button_3;
+  cgui_grid *grid;
+  cgui_window *window;
+  question_t question;
+} game_t;
 
-/* Generates a new question */
-question_t generate_question() {
+/* Global variables */
+static game_t game;
+
+static question_t generate_question() {
   question_t q;
   int num1 = rand() % 10; /* Generates random numbers between 0 and 9 */
   int num2 = rand() % 10;
@@ -85,125 +66,97 @@ question_t generate_question() {
   return q;
 }
 
-/* Checks the answer and updates the score */
-void check_answer(player_t *player, question_t q, int answer) {
-  if (answer == q.correct_answer) {
-    player->score++;
+static void check_answer(game_t *game, int answer) {
+  if (answer == game->question.correct_answer) {
+    game->score++;
   }
 }
 
-static question_t question;
-static player_t player = {
-    .score = 0,
-};
+static void update_label(game_t *game) {
+  cstr_clear(game->score_str);
+  cstr_append(game->score_str, "score: ");
+  cstr_append(game->score_str, game->score);
+  cgui_label_set(game->score_label, cstr_chars(game->score_str));
+  cgui_gauge_set_value(game->gauge, 2.0 * game->score);
+  game->question = generate_question();
+  cgui_label_set(game->label, game->question.question);
+  cgui_button_set_label(game->button_1, game->question.answers[0]);
+  cgui_button_set_label(game->button_2, game->question.answers[1]);
+  cgui_button_set_label(game->button_3, game->question.answers[2]);
+}
 
-/************************************************************************************************************/
-/* MAIN */
-/************************************************************************************************************/
-
-/**
- * Addition game: click on the right answer to increment the score counter.
- */
+static void on_click(cgui_cell *c) {
+  if (c == game.button_1) {
+    check_answer(&game, 0);
+  } else if (c == game.button_2) {
+    check_answer(&game, 1);
+  } else if (c == game.button_3) {
+    check_answer(&game, 2);
+  }
+  update_label(&game);
+}
 
 int main(int argc, char **argv) {
-  /* Instantiation */
 
   cgui_init(argc, argv);
 
-  window = cgui_window_create();
-  grid = cgui_grid_create(4, 3);
-  score = cgui_label_create();
-  label = cgui_label_create();
-  gauge = cgui_gauge_create();
-  button_1 = cgui_button_create();
-  button_2 = cgui_button_create();
-  button_3 = cgui_button_create();
-  question = generate_question();
-  score_str = cstr_create();
+  game.score = 0;
+  game.score_str = cstr_create();
+  game.label = cgui_label_create();
+  game.score_label = cgui_label_create();
+  game.gauge = cgui_gauge_create();
+  game.button_1 = cgui_button_create();
+  game.button_2 = cgui_button_create();
+  game.button_3 = cgui_button_create();
+  game.grid = cgui_grid_create(4, 3);
+  game.window = cgui_window_create();
+  game.question = generate_question();
 
-  /* Cell setup */
+  cgui_label_align(game.score_label, CGUI_ALIGN_RIGHT);
+  cgui_label_align(game.label, CGUI_ALIGN_LEFT);
 
-  cgui_label_align(score, CGUI_ALIGN_RIGHT);
-  cgui_label_align(label, CGUI_ALIGN_LEFT);
+  cgui_button_on_click(game.button_1, on_click);
+  cgui_button_on_click(game.button_2, on_click);
+  cgui_button_on_click(game.button_3, on_click);
 
-  cgui_button_on_click(button_1, on_click);
-  cgui_button_on_click(button_2, on_click);
-  cgui_button_on_click(button_3, on_click);
+  cgui_gauge_clamp_value(game.gauge, 0.0, 100.0);
+  cgui_gauge_hide_label(game.gauge);
+  cgui_gauge_rotate(game.gauge, CGUI_ROTATION_RIGHT);
 
-  cgui_gauge_clamp_value(gauge, 0.0, 100.0);
-  cgui_gauge_hide_label(gauge);
-  cgui_gauge_rotate(gauge, CGUI_ROTATION_RIGHT);
+  update_label(&game);
 
-  update_label();
+  cgui_grid_resize_col(game.grid, 0, 5);
+  cgui_grid_resize_col(game.grid, 1, 5);
+  cgui_grid_resize_col(game.grid, 2, 5);
+  cgui_grid_resize_col(game.grid, 3, 5);
 
-  /* Grid setup */
+  cgui_grid_assign_cell(game.grid, game.score_label, 0, 0, 3, 1);
+  cgui_grid_assign_cell(game.grid, game.label, 0, 1, 3, 1);
+  cgui_grid_assign_cell(game.grid, game.gauge, 3, 0, 1, 3);
+  cgui_grid_assign_cell(game.grid, game.button_1, 0, 2, 1, 1);
+  cgui_grid_assign_cell(game.grid, game.button_2, 1, 2, 1, 1);
+  cgui_grid_assign_cell(game.grid, game.button_3, 2, 2, 1, 1);
 
-  cgui_grid_resize_col(grid, 0, 5);
-  cgui_grid_resize_col(grid, 1, 5);
-  cgui_grid_resize_col(grid, 2, 5);
-  cgui_grid_resize_col(grid, 3, 5);
-
-  cgui_grid_assign_cell(grid, score, 0, 0, 3, 1);
-  cgui_grid_assign_cell(grid, label, 0, 1, 3, 1);
-  cgui_grid_assign_cell(grid, gauge, 3, 0, 1, 3);
-  cgui_grid_assign_cell(grid, button_1, 0, 2, 1, 1);
-  cgui_grid_assign_cell(grid, button_2, 1, 2, 1, 1);
-  cgui_grid_assign_cell(grid, button_3, 2, 2, 1, 1);
-
-  /* Window setup */
-
-  cgui_window_push_grid(window, grid);
-  cgui_window_rename(window, "Additions");
-  cgui_window_activate(window);
-
-  /* Run */
+  cgui_window_push_grid(game.window, game.grid);
+  cgui_window_rename(game.window, "Additions");
+  cgui_window_activate(game.window);
 
   cgui_run();
-
-  /* End */
 
   if (cgui_error()) {
     printf("Gui has failed during operation.\n");
   }
 
-  cgui_window_destroy(window);
-  cgui_grid_destroy(grid);
-  cgui_cell_destroy(score);
-  cgui_cell_destroy(label);
-  cgui_cell_destroy(gauge);
-  cgui_cell_destroy(button_1);
-  cgui_cell_destroy(button_2);
-  cgui_cell_destroy(button_3);
+  cgui_window_destroy(game.window);
+  cgui_grid_destroy(game.grid);
+  cgui_cell_destroy(game.score_label);
+  cgui_cell_destroy(game.label);
+  cgui_cell_destroy(game.gauge);
+  cgui_cell_destroy(game.button_1);
+  cgui_cell_destroy(game.button_2);
+  cgui_cell_destroy(game.button_3);
 
   cgui_reset();
 
   return 0;
-}
-
-/************************************************************************************************************/
-/* STATIC */
-/************************************************************************************************************/
-
-static void on_click(cgui_cell *c) {
-  if (c == button_1) {
-    check_answer(&player, question, 0);
-  } else if (c == button_2) {
-    check_answer(&player, question, 1);
-  } else if (c == button_3) {
-    check_answer(&player, question, 2);
-  }
-  update_label();
-}
-
-static void update_label(void) {
-  cstr_clear(score_str);
-  cstr_append(score_str, "score: ");
-  cstr_append(score_str, player.score);
-  cgui_label_set(score, cstr_chars(score_str));
-  cgui_gauge_set_value(gauge, 2.0 * player.score);
-  question = generate_question();
-  cgui_label_set(label, question.question);
-  cgui_button_set_label(button_1, question.answers[0]);
-  cgui_button_set_label(button_2, question.answers[1]);
-  cgui_button_set_label(button_3, question.answers[2]);
 }

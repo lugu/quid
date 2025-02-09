@@ -7,6 +7,9 @@ else()
   message(FATAL_ERROR "HOME environment variable not defined.")
 endif()
 
+# Generate compile_commands.json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Define include and library paths.  Replace with your actual paths.
 set(PROJECT_INCLUDE_DIR "${HOME_DIR}/.local/include")
 set(PROJECT_LIBRARY_DIR "${HOME_DIR}/.local/lib")
@@ -33,4 +36,5 @@ add_executable(quid src/main.c)
 target_link_libraries(quid cgui cobj) # Assumed cobject is a typo for cobobj
 
 # Set runtime library path
-set_target_properties(quid PROPERTIES LINKER_FLAGS "-Wl,-rpath,${PROJECT_LIBRARY_DIR}")
+set_target_properties(quid PROPERTIES LINKER_FLAGS
+                      "-Wl,-rpath,${PROJECT_LIBRARY_DIR}")
