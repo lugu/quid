@@ -14,6 +14,7 @@
 
 #include <cassette/cgui.h>
 #include <pthread.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,9 +39,6 @@ typedef struct {
   cgui_window *window;
   question_t question;
 } game_t;
-
-/* Global variables */
-static game_t game;
 
 static question_t generate_question() {
   question_t q;
@@ -96,18 +94,20 @@ static void update_label(game_t *game) {
   cgui_button_set_label(game->button_3, game->question.answers[2]);
 }
 
-static void on_click(cgui_cell *c) {
-  if (c == game.button_1) {
-    check_answer(&game, 0);
-  } else if (c == game.button_2) {
-    check_answer(&game, 1);
-  } else if (c == game.button_3) {
-    check_answer(&game, 2);
+static void on_click(cgui_cell *c, void *g) {
+  game_t *game = (game_t *)g;
+  if (c == game->button_1) {
+    check_answer(game, 0);
+  } else if (c == game->button_2) {
+    check_answer(game, 1);
+  } else if (c == game->button_3) {
+    check_answer(game, 2);
   }
-  update_label(&game);
+  update_label(game);
 }
 
 int main(int argc, char **argv) {
+  game_t game;
 
   srand(time(NULL));
   cgui_init(argc, argv);
@@ -127,9 +127,9 @@ int main(int argc, char **argv) {
   cgui_label_align(game.score_label, CGUI_ALIGN_RIGHT);
   cgui_label_align(game.label, CGUI_ALIGN_LEFT);
 
-  cgui_button_on_click(game.button_1, on_click);
-  cgui_button_on_click(game.button_2, on_click);
-  cgui_button_on_click(game.button_3, on_click);
+  cgui_button_on_click(game.button_1, on_click, (void *)&game);
+  cgui_button_on_click(game.button_2, on_click, (void *)&game);
+  cgui_button_on_click(game.button_3, on_click, (void *)&game);
 
   cgui_gauge_clamp_value(game.gauge, 0.0, 100.0);
   cgui_gauge_hide_label(game.gauge);

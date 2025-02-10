@@ -35,6 +35,7 @@ set_target_properties(cobj PROPERTIES IMPORTED_LOCATION ${COBJ_LIBRARY})
 add_executable(quid src/main.c)
 target_link_libraries(quid cgui cobj) # Assumed cobject is a typo for cobobj
 
-# Set runtime library path
-set_target_properties(quid PROPERTIES LINKER_FLAGS
-                      "-Wl,-rpath,${PROJECT_LIBRARY_DIR}")
+# Set runtime library path and C23
+set_target_properties(quid PROPERTIES
+          LINKER_FLAGS "-Wl,-rpath,${PROJECT_LIBRARY_DIR}"
+          C_STANDARD 23)
