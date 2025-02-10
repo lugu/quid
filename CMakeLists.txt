@@ -15,7 +15,7 @@ set(PROJECT_INCLUDE_DIR "${HOME_DIR}/.local/include")
 set(PROJECT_LIBRARY_DIR "${HOME_DIR}/.local/lib")
 
 # Add include directory to the compiler's include path.
-include_directories(${PROJECT_INCLUDE_DIR})
+include_directories(include ${PROJECT_INCLUDE_DIR})
 
 # Add libraries.
 link_directories(${PROJECT_LIBRARY_DIR})
@@ -32,7 +32,7 @@ add_library(cobj SHARED IMPORTED)
 set_target_properties(cobj PROPERTIES IMPORTED_LOCATION ${COBJ_LIBRARY})
 
 # Add source file.
-add_executable(quid src/game.c)
+add_executable(quid src/game.c src/main.c)
 target_link_libraries(quid cgui cobj) # Assumed cobject is a typo for cobobj
 
 # Set runtime library path and C23
