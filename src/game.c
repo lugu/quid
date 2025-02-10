@@ -26,6 +26,8 @@ typedef struct {
   char answers[3][10];
 } question_t;
 
+enum game_mode_t { ADDITION, MULTIPLICATION };
+
 typedef struct {
   int score;
   cstr *score_str;
@@ -38,15 +40,27 @@ typedef struct {
   cgui_grid *grid;
   cgui_window *window;
   question_t question;
+  enum game_mode_t mode;
 } game_t;
 
-static question_t generate_question() {
+static question_t generate_question(game_t *game) {
   question_t q;
-  int num1 = rand() % 20; /* Generates random numbers between 0 and 9 */
-  int num2 = rand() % 20;
-  int correct_answer = num1 + num2;
-  int incorrect_answer_1, incorrect_answer_2;
-  snprintf(q.question, 10, "%d+%d", num1, num2);
+  int num1, num2;
+  int correct_answer, incorrect_answer_1, incorrect_answer_2;
+  switch (game->mode) {
+  case ADDITION:
+    num1 = 1 + rand() % 20; /* Generates random numbers between 1 and 20 */
+    num2 = 1 + rand() % 20;
+    correct_answer = num1 + num2;
+    snprintf(q.question, 10, "%d+%d", num1, num2);
+    break;
+  case MULTIPLICATION:
+    num1 = rand() % 10; /* Generates random numbers between 0 and 9 */
+    num2 = rand() % 10;
+    correct_answer = num1 * num2;
+    snprintf(q.question, 10, "%d*%d", num1, num2);
+    break;
+  }
   int correct_answer_index = rand() % 3;
   q.correct_answer = correct_answer_index;
   if (rand() % 2) {
@@ -87,7 +101,7 @@ static void update_label(game_t *game) {
   cstr_append(game->score_str, game->score);
   cgui_label_set(game->score_label, cstr_chars(game->score_str));
   cgui_gauge_set_value(game->gauge, 2.0 * game->score);
-  game->question = generate_question();
+  game->question = generate_question(game);
   cgui_label_set(game->label, game->question.question);
   cgui_button_set_label(game->button_1, game->question.answers[0]);
   cgui_button_set_label(game->button_2, game->question.answers[1]);
@@ -113,6 +127,7 @@ int main(int argc, char **argv) {
   cgui_init(argc, argv);
 
   game.score = 0;
+  game.mode = MULTIPLICATION;
   game.score_str = cstr_create();
   game.label = cgui_label_create();
   game.score_label = cgui_label_create();
@@ -122,7 +137,7 @@ int main(int argc, char **argv) {
   game.button_3 = cgui_button_create();
   game.grid = cgui_grid_create(4, 3);
   game.window = cgui_window_create();
-  game.question = generate_question();
+  game.question = generate_question(&game);
 
   cgui_label_align(game.score_label, CGUI_ALIGN_RIGHT);
   cgui_label_align(game.label, CGUI_ALIGN_LEFT);

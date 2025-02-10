@@ -32,7 +32,7 @@ add_library(cobj SHARED IMPORTED)
 set_target_properties(cobj PROPERTIES IMPORTED_LOCATION ${COBJ_LIBRARY})
 
 # Add source file.
-add_executable(quid src/main.c)
+add_executable(quid src/game.c)
 target_link_libraries(quid cgui cobj) # Assumed cobject is a typo for cobobj
 
 # Set runtime library path and C23
