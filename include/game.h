@@ -5,8 +5,8 @@
 #define MAX_QUESTION_LENGTH 50
 
 typedef struct {
-  char question[MAX_QUESTION_LENGTH];
   int correct_answer;
+  char question[MAX_QUESTION_LENGTH];
   char answers[3][MAX_ANSWER_LENGTH];
 } question_t;
 

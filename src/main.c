@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include "game.h"
+#include "puzzle.h"
 
 typedef struct {
   cgui_window *window;
@@ -27,6 +28,7 @@ typedef struct {
   cgui_cell *add;
   cgui_cell *mul;
   game_t game;
+  puzzle_t puzzle;
 } app_t;
 
 static void on_click_add(cgui_cell *c, void *a) {
@@ -72,6 +74,9 @@ int main(int argc, char **argv) {
   cgui_window_activate(app.window);
 
   init_game(&app.game, app.window);
+  init_puzzle(&app.puzzle);
+  // FIXME: is it needed?
+  redraw_puzzle(&app.puzzle);
   cgui_window_deactivate(app.game.window);
   cgui_window_disable(app.game.window);
 
@@ -82,6 +87,7 @@ int main(int argc, char **argv) {
   }
 
   destroy_game(&app.game);
+  destroy_puzzle(&app.puzzle);
   cgui_window_destroy(app.window);
   cgui_grid_destroy(app.grid);
   cgui_cell_destroy(app.add);
