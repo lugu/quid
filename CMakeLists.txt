@@ -48,3 +48,4 @@ target_link_libraries(test cgui cobj)
 set_target_properties(test PROPERTIES
           LINKER_FLAGS "-Wl,-rpath,${PROJECT_LIBRARY_DIR}"
           C_STANDARD 23)
+
