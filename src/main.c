@@ -32,15 +32,13 @@ typedef struct {
 static void on_click_add(cgui_cell *c, void *a) {
   app_t *app = (app_t *)(a);
   reset_game(&app->game, ADDITION);
-  cgui_window_activate(app->game.window);
-  cgui_window_enable(app->game.window);
+  activate_game(&app->game);
 }
 
 static void on_click_mul(cgui_cell *c, void *a) {
   app_t *app = (app_t *)(a);
   reset_game(&app->game, MULTIPLICATION);
-  cgui_window_activate(app->game.window);
-  cgui_window_enable(app->game.window);
+  activate_game(&app->game);
 }
 
 int main(int argc, char **argv) {
@@ -72,8 +70,6 @@ int main(int argc, char **argv) {
   cgui_window_activate(app.window);
 
   init_game(&app.game, app.window);
-  cgui_window_deactivate(app.game.window);
-  cgui_window_disable(app.game.window);
 
   cgui_run();
 

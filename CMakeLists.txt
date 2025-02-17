@@ -32,8 +32,19 @@ add_library(cobj SHARED IMPORTED)
 set_target_properties(cobj PROPERTIES IMPORTED_LOCATION ${COBJ_LIBRARY})
 
 # Add source file.
-add_executable(quid src/game.c src/main.c)
-target_link_libraries(quid cgui cobj) # Assumed cobject is a typo for cobobj
+add_executable(quid src/game.c src/main.c src/animation.c)
+target_link_libraries(quid cgui cobj m)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(CAIRO REQUIRED cairo)
+
+if (CAIRO_FOUND)
+    include_directories(${CAIRO_INCLUDE_DIRS})
+    link_directories(${CAIRO_LIBRARY_DIRS})
+    target_link_libraries(quid ${CAIRO_LIBRARIES})
+else()
+    message(FATAL_ERROR "Cairo not found. Make sure they are installed.")
+endif()
 
 # Set runtime library path and C23
 set_target_properties(quid PROPERTIES

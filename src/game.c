@@ -70,6 +70,9 @@ static question_t generate_question(enum game_mode_t mode) {
 static void check_answer(game_t *game, int answer) {
   if (answer == game->question.correct_answer) {
     game->score++;
+    do_animation(&game->animation, ANIMATION_SUCCESS);
+  } else {
+    do_animation(&game->animation, ANIMATION_FAILURE);
   }
 }
 
@@ -115,6 +118,8 @@ void init_game(game_t *game, cgui_window *parent_window) {
   game->parent_window = parent_window;
   game->question = generate_question(game->mode);
 
+  init_animation(&game->animation, game->window);
+
   cgui_label_align(game->score_label, CGUI_ALIGN_RIGHT);
   cgui_label_align(game->label, CGUI_ALIGN_LEFT);
 
@@ -143,9 +148,20 @@ void init_game(game_t *game, cgui_window *parent_window) {
   cgui_window_push_grid(game->window, game->grid);
   cgui_window_rename(game->window, "Additions");
   cgui_window_on_close(game->window, on_close);
+
+  cgui_window_deactivate(game->window);
+  cgui_window_disable(game->window);
+}
+
+void activate_game(game_t *game) {
+  cgui_window_activate(game->window);
+  cgui_window_enable(game->window);
+  activate_animation(&game->animation);
 }
 
 void destroy_game(game_t *game) {
+  destroy_animation(&game->animation);
+
   cgui_window_destroy(game->window);
   game->window = NULL;
   cgui_grid_destroy(game->grid);
