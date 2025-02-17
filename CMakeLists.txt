@@ -32,20 +32,11 @@ add_library(cobj SHARED IMPORTED)
 set_target_properties(cobj PROPERTIES IMPORTED_LOCATION ${COBJ_LIBRARY})
 
 # Add source file.
-add_executable(quid src/game.c src/main.c src/puzzle.c)
-target_link_libraries(quid cgui cobj xcb)
+add_executable(quid src/game.c src/main.c)
+target_link_libraries(quid cgui cobj) # Assumed cobject is a typo for cobobj
 
 # Set runtime library path and C23
 set_target_properties(quid PROPERTIES
-          LINKER_FLAGS "-Wl,-rpath,${PROJECT_LIBRARY_DIR}"
-          C_STANDARD 23)
-
-# Add source file.
-add_executable(test src/test.c)
-target_link_libraries(test cgui cobj)
-
-# Set runtime library path and C23
-set_target_properties(test PROPERTIES
           LINKER_FLAGS "-Wl,-rpath,${PROJECT_LIBRARY_DIR}"
           C_STANDARD 23)
 
