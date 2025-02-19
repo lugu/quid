@@ -21,9 +21,9 @@ typedef enum {
   SPACESHIP_MOVING_TO_CENTER, // Moving to the center
   SPACESHIP_EXPLODING,   // During the explosion animation
   SPACESHIP_RESPAWNING    // After the explosion, before new spaceship appears
-} SpaceshipState;
+} spaceship_state_e;
 
-SpaceshipState spaceship_state = SPACESHIP_MOVING;
+spaceship_state_e spaceship_state = SPACESHIP_MOVING;
 
 // Laser animation
 gboolean laser_active = FALSE;
