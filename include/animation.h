@@ -40,7 +40,8 @@ typedef struct {
   cgui_window *parent_window;
   cgui_grid *grid;
   cairo_t *cairo_context;
-  cairo_surface_t *cairo_surface;
+  int surface_width;
+  int surface_height;
   state_t state;
 } animation_t;
 

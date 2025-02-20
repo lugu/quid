@@ -6,9 +6,8 @@
 #include "animation.h"
 
 // Window dimensions
-// TODO: reconcile with actual window size
-const int WINDOW_WIDTH = 800;
-const int WINDOW_HEIGHT = 600;
+const int WINDOW_WIDTH = 524;
+const int WINDOW_HEIGHT = 512;
 
 const int NUM_EXPLOSION_FRAMES = 10; // Number of frames in the explosion animation
 
@@ -173,7 +172,7 @@ static void update_spaceship(state_t *state) {
     double new_y = state->spaceship.spaceship_y + state->spaceship.spaceship_speed * sin(state->spaceship.spaceship_angle);
 
     // 5. Keep the spaceship within the bounds of the window (or bounce it off the edges)
-    double margin = 250.0; // Distance from the edge to bounce
+    double margin = 100.0; // Distance from the edge to bounce
     if (new_x < margin || new_x > WINDOW_WIDTH - margin) {
       state->spaceship.spaceship_angle = M_PI - state->spaceship.spaceship_angle; // Reflect horizontally
       new_x = state->spaceship.spaceship_x; // Prevent sticking
@@ -248,9 +247,11 @@ void init_animation(animation_t *animation, cgui_window *parent_window) {
   _animation = animation;
   animation->parent_window = parent_window;
   animation->window = cgui_window_create();
-  animation->cairo_context = cgui_window_cairo_drawable(animation->window);
-  animation->cairo_surface = cgui_window_cairo_surface(animation->window);
   animation->grid = cgui_grid_create(1, 1);
+  animation->cairo_context = cgui_window_cairo_drawable(animation->window);
+  // Height and width will be known when the window is active.
+  animation->surface_height = 0;
+  animation->surface_width = 0;
 
   reset_spaceship(&animation->state.spaceship);
   reset_laser(&animation->state.laser);
@@ -274,8 +275,20 @@ void destroy_animation(animation_t *animation) {
 }
 
 void activate_animation(animation_t *animation){
+  int surface_height;
+  int surface_width;
+
   cgui_window_activate(animation->window);
   cgui_window_enable(animation->window);
+
+  surface_height = cgui_window_height(animation->window);
+  surface_width = cgui_window_width(animation->window);
+  if (surface_height != WINDOW_HEIGHT) {
+    fprintf(stderr, "unexpected window height: %d\n", surface_height);
+  }
+  if (surface_width != WINDOW_WIDTH) {
+    fprintf(stderr, "unexpected window width: %d\n", surface_width);
+  }
 }
 
 void do_animation(animation_t *animation, enum animation_mode_t mode) {
