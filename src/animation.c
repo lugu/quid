@@ -3,7 +3,7 @@
  * This animation simulates a Star Wars-like scene with a target and an enemy
  * spaceship.
  */
-      
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,8 +44,7 @@ const double MOVEMENT_MARGIN = 100.0;
 // Spaceship movement constants
 const double MIN_SPACESHIP_SPEED = 5.0;
 const double MAX_SPACESHIP_SPEED = 10.0;
-const double ANGLE_CHANGE_MAX = 0.1;
-const double SPEED_CHANGE_MAX = 0.025;
+const double MAX_SPACESHIP_ANGLE = 20.0;
 
 /*
  * Cassette doesn't let us provide private data associated with a window
@@ -98,69 +97,114 @@ static void draw_laser(cairo_t *cr, laser_t laser) {
 }
 
 static void draw_spaceship(cairo_t *cr, spaceship_t spaceship) {
-  cairo_set_source_rgb(cr, 1.0, 0.2, 0.2); // Red
+  cairo_set_source_rgb(cr, 1.0, 0.2, 0.2); // Red (or your preferred color)
   cairo_set_line_width(cr, 2.0);
 
-  // Body
-  cairo_rectangle(cr, spaceship.spaceship_x - SPACESHIP_WING_LENGTH, spaceship.spaceship_y - SPACESHIP_BODY_HEIGHT / 2, SPACESHIP_BODY_WIDTH, SPACESHIP_BODY_HEIGHT);
+  double x = spaceship.spaceship_x;
+  double y = spaceship.spaceship_y;
+  double angle = spaceship.spaceship_angle; // Use the spaceship's angle for rotation
+
+  cairo_save(cr); // Save current drawing state for rotation
+
+  cairo_translate(cr, x, y); // Move origin to spaceship center
+  cairo_rotate(cr, angle);    // Rotate the drawing context
+
+  // Body (Rectangle)
+  double body_width = SPACESHIP_BODY_WIDTH;
+  double body_height = SPACESHIP_BODY_HEIGHT;
+  cairo_rectangle(cr, -body_width / 2, -body_height / 2, body_width, body_height);
   cairo_stroke(cr);
 
-  // Wings (Simplified)
-    cairo_move_to(cr, spaceship.spaceship_x - SPACESHIP_WING_LENGTH, spaceship.spaceship_y - SPACESHIP_BODY_HEIGHT / 2);
-    cairo_line_to(cr, spaceship.spaceship_x - 2 * SPACESHIP_WING_LENGTH, spaceship.spaceship_y - SPACESHIP_BODY_HEIGHT * 1.5);
-    cairo_move_to(cr, spaceship.spaceship_x + SPACESHIP_WING_LENGTH, spaceship.spaceship_y - SPACESHIP_BODY_HEIGHT / 2);
-    cairo_line_to(cr, spaceship.spaceship_x + 2 * SPACESHIP_WING_LENGTH, spaceship.spaceship_y - SPACESHIP_BODY_HEIGHT * 1.5);
-    cairo_move_to(cr, spaceship.spaceship_x - SPACESHIP_WING_LENGTH, spaceship.spaceship_y + SPACESHIP_BODY_HEIGHT / 2);
-    cairo_line_to(cr, spaceship.spaceship_x - 2 * SPACESHIP_WING_LENGTH, spaceship.spaceship_y + SPACESHIP_BODY_HEIGHT * 1.5);
-    cairo_move_to(cr, spaceship.spaceship_x + SPACESHIP_WING_LENGTH, spaceship.spaceship_y + SPACESHIP_BODY_HEIGHT / 2);
-    cairo_line_to(cr, spaceship.spaceship_x + 2 * SPACESHIP_WING_LENGTH, spaceship.spaceship_y + SPACESHIP_BODY_HEIGHT * 1.5);
+  // Wings (Triangles)
+  double wing_length = SPACESHIP_WING_LENGTH;
+  cairo_move_to(cr, -body_width / 2, -body_height / 2);
+  cairo_line_to(cr, -body_width / 2 - wing_length, -body_height * 1.2); // Adjust these values
+  cairo_line_to(cr, -body_width / 2, -body_height);
+  cairo_close_path(cr);
   cairo_stroke(cr);
+
+  cairo_move_to(cr, body_width / 2, -body_height / 2);
+  cairo_line_to(cr, body_width / 2 + wing_length, -body_height * 1.2); // Adjust these values
+  cairo_line_to(cr, body_width / 2, -body_height);
+  cairo_close_path(cr);
+  cairo_stroke(cr);
+
+
+  cairo_move_to(cr, -body_width / 2, body_height / 2);
+  cairo_line_to(cr, -body_width / 2 - wing_length, body_height * 1.2); // Adjust these values
+  cairo_line_to(cr, -body_width / 2, body_height);
+  cairo_close_path(cr);
+  cairo_stroke(cr);
+
+  cairo_move_to(cr, body_width / 2, body_height / 2);
+  cairo_line_to(cr, body_width / 2 + wing_length, body_height * 1.2); // Adjust these values
+  cairo_line_to(cr, body_width / 2, body_height);
+  cairo_close_path(cr);
+  cairo_stroke(cr);
+
+  cairo_restore(cr); // Restore the drawing state (undo rotation/translation)
 }
 
 static void draw_target(cairo_t *cr) {
   int center_x = WINDOW_WIDTH / 2;
   int center_y = WINDOW_HEIGHT / 2;
 
-  // 1. Draw the Arcs (Top and Bottom)
+  // 1. Outer Circle
   cairo_set_source_rgb(cr, 0.2, 0.6, 1.0); // Light Blue
   cairo_set_line_width(cr, 2.0);
-
-  double arc_radius = 150; // Adjust for size
-  double arc_angle = M_PI / 3; // Angle of the arc
-
-  // Top Arc
-  cairo_arc(cr, center_x, center_y - TARGET_ARROW_SIZE, arc_radius, M_PI + arc_angle, 2 * M_PI - arc_angle);
+  cairo_arc(cr, center_x, center_y, TARGET_ARC_RADIUS + 10, 0, 2 * M_PI); // Slightly larger radius
   cairo_stroke(cr);
 
-  // Bottom Arc
-  cairo_arc(cr, center_x, center_y + TARGET_ARROW_SIZE, arc_radius, arc_angle, M_PI - arc_angle);
+  // 2. Inner Circle
+  cairo_arc(cr, center_x, center_y, TARGET_ARC_RADIUS - 10, 0, 2 * M_PI); // Slightly smaller radius
   cairo_stroke(cr);
 
-  // 2. Draw the Horizontal Lines
-  cairo_set_source_rgb(cr, 0.2, 0.6, 1.0); // Light Blue
-  cairo_set_line_width(cr, 2.0);
-
-  double line_length = TARGET_LINE_LENGTH; // Adjust line length
-  double arrow_size = TARGET_ARROW_SIZE;
+  // 3. Horizontal Lines with Ticks
+  double line_length = TARGET_LINE_LENGTH;
+  double tick_length = 10; // Length of the small ticks
+  double tick_offset = 5; // Offset of ticks from the line
 
   // Left Line
   cairo_move_to(cr, center_x - line_length, center_y);
-  cairo_line_to(cr, center_x - arrow_size, center_y);
-  // Arrow Head
-  cairo_line_to(cr, center_x - arrow_size, center_y - arrow_size / 2);
-  cairo_move_to(cr, center_x - arrow_size, center_y);
-  cairo_line_to(cr, center_x - arrow_size, center_y + arrow_size / 2);
-  cairo_stroke(cr);
+  cairo_line_to(cr, center_x - TARGET_ARC_RADIUS - 10, center_y); // Extend to outer circle
+  // Ticks
+  cairo_move_to(cr, center_x - line_length, center_y - tick_length / 2);
+  cairo_line_to(cr, center_x - line_length - tick_offset, center_y - tick_length / 2);
+  cairo_move_to(cr, center_x - line_length, center_y + tick_length / 2);
+  cairo_line_to(cr, center_x - line_length - tick_offset, center_y + tick_length / 2);
 
   // Right Line
   cairo_move_to(cr, center_x + line_length, center_y);
-  cairo_line_to(cr, center_x + arrow_size, center_y);
-  // Arrow Head
-  cairo_line_to(cr, center_x + arrow_size, center_y - arrow_size / 2);
-  cairo_move_to(cr, center_x + arrow_size, center_y);
-  cairo_line_to(cr, center_x + arrow_size, center_y + arrow_size / 2);
+  cairo_line_to(cr, center_x + TARGET_ARC_RADIUS + 10, center_y); // Extend to outer circle
+  // Ticks
+  cairo_move_to(cr, center_x + line_length, center_y - tick_length / 2);
+  cairo_line_to(cr, center_x + line_length + tick_offset, center_y - tick_length / 2);
+  cairo_move_to(cr, center_x + line_length, center_y + tick_length / 2);
+  cairo_line_to(cr, center_x + line_length + tick_offset, center_y + tick_length / 2);
+
   cairo_stroke(cr);
 
+
+  // 4. Vertical Lines with Ticks
+  // Top Line
+  cairo_move_to(cr, center_x, center_y - line_length);
+  cairo_line_to(cr, center_x, center_y - TARGET_ARC_RADIUS - 10); // Extend to outer circle
+  // Ticks
+  cairo_move_to(cr, center_x - tick_length / 2, center_y - line_length);
+  cairo_line_to(cr, center_x - tick_length / 2, center_y - line_length - tick_offset);
+  cairo_move_to(cr, center_x + tick_length / 2, center_y - line_length);
+  cairo_line_to(cr, center_x + tick_length / 2, center_y - line_length - tick_offset);
+
+  // Bottom Line
+  cairo_move_to(cr, center_x, center_y + line_length);
+  cairo_line_to(cr, center_x, center_y + TARGET_ARC_RADIUS + 10); // Extend to outer circle
+  // Ticks
+  cairo_move_to(cr, center_x - tick_length / 2, center_y + line_length);
+  cairo_line_to(cr, center_x - tick_length / 2, center_y + line_length + tick_offset);
+  cairo_move_to(cr, center_x + tick_length / 2, center_y + line_length);
+  cairo_line_to(cr, center_x + tick_length / 2, center_y + line_length + tick_offset);
+
+  cairo_stroke(cr);
 }
 
 // Function to draw the scene
@@ -191,8 +235,11 @@ static void draw_animation(animation_t *animation) {
 
 static void update_spaceship_moving(state_t *state) {
   // 1. Randomly adjust the spaceship's angle
-  double angle_change = (double)(rand() % 200 - 100) / 1000.0; // Random change between -0.1 and 0.1
+  double angle_change = (double)(rand() % 200 - 100) / 5000.0; // Random change between -0.1 and 0.1
   state->spaceship.spaceship_angle += angle_change;
+
+  // Constrain the spaceship angle
+  state->spaceship.spaceship_angle = fmax(-MAX_SPACESHIP_ANGLE, fmin(state->spaceship.spaceship_angle, MAX_SPACESHIP_ANGLE));
 
   // 2. Randomly adjust the spaceship's speed
   double speed_change = (double)(rand() % 50 - 25) / 1000.0; // Random change between -0.025 and 0.025
@@ -200,14 +247,14 @@ static void update_spaceship_moving(state_t *state) {
 
   // 3. Limit the spaceship's speed
   if (state->spaceship.spaceship_speed < 5.0) state->spaceship.spaceship_speed = 5.0; // Min speed
-  if (state->spaceship.spaceship_speed > 10.0) state->spaceship.spaceship_speed = 10.0; // Max speed
+  if (state->spaceship.spaceship_speed > MAX_SPACESHIP_SPEED) state->spaceship.spaceship_speed = MAX_SPACESHIP_SPEED; // Max speed
 
   // 4. Calculate the new position based on angle and speed
   double new_x = state->spaceship.spaceship_x + state->spaceship.spaceship_speed * cos(state->spaceship.spaceship_angle);
   double new_y = state->spaceship.spaceship_y + state->spaceship.spaceship_speed * sin(state->spaceship.spaceship_angle);
 
   // 5. Keep the spaceship within the bounds of the window (or bounce it off the edges)
-  double margin = 100.0; // Distance from the edge to bounce
+  double margin = MOVEMENT_MARGIN;// Distance from the edge to bounce 
   if (new_x < margin || new_x > WINDOW_WIDTH - margin) {
     state->spaceship.spaceship_angle = M_PI - state->spaceship.spaceship_angle; // Reflect horizontally
     new_x = state->spaceship.spaceship_x; // Prevent sticking
@@ -236,7 +283,7 @@ static void update_spaceship_moving_to_center(state_t *state) {
     }
   } else {
     // Move closer to the center
-    double move_speed = 10.0; // Adjust as needed
+    double move_speed = MAX_SPACESHIP_SPEED; // Adjust as needed
     state->spaceship.spaceship_x += (dx / distance) * move_speed;
     state->spaceship.spaceship_y += (dy / distance) * move_speed;
   }
@@ -268,7 +315,7 @@ static void update_laser(state_t *state) {
 }
 
 static void update_animation(animation_t *animation, unsigned long delay) {
-    switch (animation->state.spaceship.spaceship_state) {
+  switch (animation->state.spaceship.spaceship_state) {
     case SPACESHIP_MOVING:
       update_spaceship_moving(&animation->state);
       break;
