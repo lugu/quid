@@ -33,7 +33,7 @@ typedef struct {
   spaceship_t spaceship;
   explosion_t explosion;
   laser_t laser;
-}state_t;
+} state_t;
 
 typedef struct {
   cgui_window *window;
