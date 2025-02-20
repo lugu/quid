@@ -1,3 +1,9 @@
+
+/*
+ * This animation simulates a Star Wars-like scene with a target and an enemy
+ * spaceship.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -231,14 +237,14 @@ static void update_laser(state_t *state) {
   }
 }
 
-static void udpate_animation(animation_t *animation) {
+static void update_animation(animation_t *animation, unsigned long delay) {
   update_spaceship(&animation->state);
   update_laser(&animation->state);
   update_explosion(&animation->state);
 }
 
 static void on_draw(cgui_window *window, unsigned long delay) {
-  udpate_animation(_animation);
+  update_animation(_animation, delay);
   draw_animation(_animation);
   cgui_window_redraw_delayed(window, 20 /* milliseconds */);
 }

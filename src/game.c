@@ -1,15 +1,24 @@
-/**
- * This program is free software; you can redistribute it and/or modify it
- * either under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 3.0 of the License or (at
- * your option) any later version.
+
+/*
+ * This game presents the user with math questions (addition or multiplication).
  *
- * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
- * KIND, either express or implied. See the LGPL for the specific language
- * governing rights and limitations.
+ * Game Modes:
+ *   - ADDITION: Generates two random numbers between 1 and 20, asks for their sum.
+ *   - MULTIPLICATION: Generates two random numbers between 0 and 9, asks for their product.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Scoring:
+ *   - Correct answer: Score increases by 1.
+ *   - Wrong answer: Life decreases by 1.
+ *
+ * Life:
+ *   - The player starts with 10 lives.
+ *   - Game over when lives reach 0.
+ *
+ * Wrong Answers:
+ *   - Two incorrect answers are generated.
+ *   - One is the correct answer - 1 or + 1
+ *   - The other is the correct answer - 2 or + 2
+ *   - The correct answer and incorrect answers are randomly shuffled
  */
 
 #include <pthread.h>
@@ -72,6 +81,7 @@ static void check_answer(game_t *game, int answer) {
     game->score++;
     do_animation(&game->animation, ANIMATION_SUCCESS);
   } else {
+    game->life--;
     do_animation(&game->animation, ANIMATION_FAILURE);
   }
 }
@@ -81,7 +91,7 @@ static void update_label(game_t *game) {
   cstr_append(game->score_str, "score: ");
   cstr_append(game->score_str, game->score);
   cgui_label_set(game->score_label, cstr_chars(game->score_str));
-  cgui_gauge_set_value(game->gauge, 2.0 * game->score);
+  cgui_gauge_set_value(game->gauge, 10 * game->life);
   game->question = generate_question(game->mode);
   cgui_label_set(game->label, game->question.question);
   cgui_button_set_label(game->button_1, game->question.answers[0]);
@@ -104,8 +114,6 @@ static void on_click(cgui_cell *c, void *g) {
 static void on_close(cgui_window *w) { cgui_window_deactivate(w); }
 
 void init_game(game_t *game, cgui_window *parent_window) {
-  game->score = 0;
-  game->mode = ADDITION;
   game->score_str = cstr_create();
   game->label = cgui_label_create();
   game->score_label = cgui_label_create();
@@ -117,6 +125,8 @@ void init_game(game_t *game, cgui_window *parent_window) {
   game->window = cgui_window_create();
   game->parent_window = parent_window;
   game->question = generate_question(game->mode);
+
+  reset_game(game, ADDITION);
 
   init_animation(&game->animation, game->window);
 
@@ -130,8 +140,6 @@ void init_game(game_t *game, cgui_window *parent_window) {
   cgui_gauge_clamp_value(game->gauge, 0.0, 100.0);
   cgui_gauge_hide_label(game->gauge);
   cgui_gauge_rotate(game->gauge, CGUI_ROTATION_RIGHT);
-
-  update_label(game);
 
   cgui_grid_resize_col(game->grid, 0, 5);
   cgui_grid_resize_col(game->grid, 1, 5);
@@ -183,6 +191,7 @@ void destroy_game(game_t *game) {
 void reset_game(game_t *game, enum game_mode_t mode) {
   game->mode = mode;
   game->score = 0.0;
+  game->life = 10.0;
   game->question = generate_question(game->mode);
   update_label(game);
 }

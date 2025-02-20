@@ -16,6 +16,7 @@ enum game_mode_t { ADDITION, MULTIPLICATION };
 
 typedef struct {
   int score;
+  int life;
   cstr *score_str;
   cgui_cell *label;
   cgui_cell *score_label;
