@@ -13,8 +13,9 @@ typedef enum {
 typedef struct {
   double spaceship_x;
   double spaceship_y;
-  double spaceship_angle;
   double spaceship_speed;
+  double spaceship_draw_angle;
+  double spaceship_move_angle;
   spaceship_state_e spaceship_state;
 } spaceship_t;
 

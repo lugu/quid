@@ -44,7 +44,7 @@ const double MOVEMENT_MARGIN = 100.0;
 // Spaceship movement constants
 const double MIN_SPACESHIP_SPEED = 5.0;
 const double MAX_SPACESHIP_SPEED = 10.0;
-const double MAX_SPACESHIP_ANGLE = 20.0;
+const double MAX_SPACESHIP_ANGLE = 40.0;
 
 /*
  * Cassette doesn't let us provide private data associated with a window
@@ -55,7 +55,8 @@ static animation_t *_animation;
 void reset_spaceship(spaceship_t *spaceship) {
   spaceship->spaceship_x = (double)(WINDOW_WIDTH / 2 - 100 + (rand() % 200));
   spaceship->spaceship_y = (double)(WINDOW_HEIGHT /2 - 100 + (rand() % 200));
-  spaceship->spaceship_angle = 0;
+  spaceship->spaceship_draw_angle = 0;
+  spaceship->spaceship_move_angle = 0;
   spaceship->spaceship_speed = 0;
   spaceship->spaceship_state = SPACESHIP_MOVING;
 }
@@ -102,7 +103,7 @@ static void draw_spaceship(cairo_t *cr, spaceship_t spaceship) {
 
   double x = spaceship.spaceship_x;
   double y = spaceship.spaceship_y;
-  double angle = spaceship.spaceship_angle; // Use the spaceship's angle for rotation
+  double angle = spaceship.spaceship_draw_angle; // Use the spaceship's angle for rotation
 
   cairo_save(cr); // Save current drawing state for rotation
 
@@ -234,12 +235,13 @@ static void draw_animation(animation_t *animation) {
 }
 
 static void update_spaceship_moving(state_t *state) {
-  // 1. Randomly adjust the spaceship's angle
-  double angle_change = (double)(rand() % 200 - 100) / 5000.0; // Random change between -0.1 and 0.1
-  state->spaceship.spaceship_angle += angle_change;
+  // 1. Randomly adjust the spaceship's direction and angle
+  double move_angle_change = (double)(rand() % 200 - 100) / 1000.0; // Random change between -0.1 and 0.1
+  state->spaceship.spaceship_move_angle += move_angle_change;
 
-  // Constrain the spaceship angle
-  state->spaceship.spaceship_angle = fmax(-MAX_SPACESHIP_ANGLE, fmin(state->spaceship.spaceship_angle, MAX_SPACESHIP_ANGLE));
+  double draw_angle_change = (double)(rand() % 200 - 100) / 5000.0; // Random change between -0.1 and 0.1
+  state->spaceship.spaceship_draw_angle += draw_angle_change;
+  state->spaceship.spaceship_draw_angle = fmax(-MAX_SPACESHIP_ANGLE, fmin(state->spaceship.spaceship_draw_angle, MAX_SPACESHIP_ANGLE));
 
   // 2. Randomly adjust the spaceship's speed
   double speed_change = (double)(rand() % 50 - 25) / 1000.0; // Random change between -0.025 and 0.025
@@ -250,17 +252,17 @@ static void update_spaceship_moving(state_t *state) {
   if (state->spaceship.spaceship_speed > MAX_SPACESHIP_SPEED) state->spaceship.spaceship_speed = MAX_SPACESHIP_SPEED; // Max speed
 
   // 4. Calculate the new position based on angle and speed
-  double new_x = state->spaceship.spaceship_x + state->spaceship.spaceship_speed * cos(state->spaceship.spaceship_angle);
-  double new_y = state->spaceship.spaceship_y + state->spaceship.spaceship_speed * sin(state->spaceship.spaceship_angle);
+  double new_x = state->spaceship.spaceship_x + state->spaceship.spaceship_speed * cos(state->spaceship.spaceship_move_angle);
+  double new_y = state->spaceship.spaceship_y + state->spaceship.spaceship_speed * sin(state->spaceship.spaceship_move_angle);
 
   // 5. Keep the spaceship within the bounds of the window (or bounce it off the edges)
   double margin = MOVEMENT_MARGIN;// Distance from the edge to bounce 
   if (new_x < margin || new_x > WINDOW_WIDTH - margin) {
-    state->spaceship.spaceship_angle = M_PI - state->spaceship.spaceship_angle; // Reflect horizontally
+    state->spaceship.spaceship_move_angle = M_PI - state->spaceship.spaceship_move_angle; // Reflect horizontally
     new_x = state->spaceship.spaceship_x; // Prevent sticking
   }
   if (new_y < margin || new_y > WINDOW_HEIGHT - margin) {
-    state->spaceship.spaceship_angle = -state->spaceship.spaceship_angle; // Reflect vertically
+    state->spaceship.spaceship_move_angle = -state->spaceship.spaceship_move_angle; // Reflect vertically
     new_y = state->spaceship.spaceship_y; // Prevent sticking
   }
 
