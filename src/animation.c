@@ -317,6 +317,7 @@ static void update_laser(state_t *state) {
 }
 
 static void update_animation(animation_t *animation, unsigned long delay) {
+  update_laser(&animation->state);
   switch (animation->state.spaceship.spaceship_state) {
     case SPACESHIP_MOVING:
       update_spaceship_moving(&animation->state);
@@ -327,11 +328,9 @@ static void update_animation(animation_t *animation, unsigned long delay) {
     case SPACESHIP_EXPLODING:
       update_explosion(&animation->state);
       break;
-    case SPACESHIP_RESPAWNING:
-      reset_spaceship(&animation->state.spaceship);
+    case SPACESHIP_GONE:
       break;
   }
-  update_laser(&animation->state);
 }
 
 static void on_draw(cgui_window *window, unsigned long delay) {
@@ -402,5 +401,15 @@ void do_animation(animation_t *animation, enum animation_mode_t mode) {
         animation->state.laser.laser_y = WINDOW_HEIGHT;
       }
       break;
+    case ANIMATION_END:
+      reset_spaceship(&animation->state.spaceship);
+      animation->state.spaceship.spaceship_state = SPACESHIP_GONE;
+      break;
   }
+}
+
+void reset_animation(animation_t *animation) {
+  reset_laser(&animation->state.laser);
+  reset_explosion(&animation->state.explosion);
+  reset_spaceship(&animation->state.spaceship);
 }

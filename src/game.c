@@ -78,11 +78,16 @@ static question_t generate_question(enum game_mode_t mode) {
 
 static void check_answer(game_t *game, int answer) {
   if (answer == game->question.correct_answer) {
-    game->score++;
-    do_animation(&game->animation, ANIMATION_SUCCESS);
+      game->score++;
+      do_animation(&game->animation, ANIMATION_SUCCESS);
   } else {
-    game->life--;
-    do_animation(&game->animation, ANIMATION_FAILURE);
+      do_animation(&game->animation, ANIMATION_FAILURE);
+      game->life--;
+  }
+  // No more life, no more animation
+  if (game->life < 0) {
+    do_animation(&game->animation, ANIMATION_END);
+    return;
   }
 }
 
@@ -193,5 +198,6 @@ void reset_game(game_t *game, enum game_mode_t mode) {
   game->score = 0.0;
   game->life = 10.0;
   game->question = generate_question(game->mode);
+  reset_animation(&game->animation);
   update_label(game);
 }

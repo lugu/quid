@@ -4,10 +4,10 @@
 
 // Spaceship states
 typedef enum {
-  SPACESHIP_MOVING,      // Normal random movement
+  SPACESHIP_MOVING,           // Normal random movement
   SPACESHIP_MOVING_TO_CENTER, // Moving to the center
-  SPACESHIP_EXPLODING,   // During the explosion animation
-  SPACESHIP_RESPAWNING    // After the explosion, before new spaceship appears
+  SPACESHIP_EXPLODING,        // During the explosion animation
+  SPACESHIP_GONE              // Do not display the spaceship
 } spaceship_state_e;
 
 typedef struct {
@@ -46,9 +46,14 @@ typedef struct {
   state_t state;
 } animation_t;
 
-enum animation_mode_t { ANIMATION_SUCCESS, ANIMATION_FAILURE };
+enum animation_mode_t {
+  ANIMATION_SUCCESS,
+  ANIMATION_FAILURE,
+  ANIMATION_END,
+};
 
 void init_animation(animation_t *animation, cgui_window *parent_window);
 void destroy_animation(animation_t *animation);
 void activate_animation(animation_t *animation);
 void do_animation(animation_t *animation, enum animation_mode_t mode);
+void reset_animation(animation_t *animation);
