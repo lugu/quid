@@ -2,6 +2,8 @@
 #include <cassette/cgui.h>
 #include <cairo/cairo.h>
 
+#include "sound.h"
+
 // Spaceship states
 typedef enum {
   SPACESHIP_MOVING,           // Normal random movement
@@ -44,6 +46,7 @@ typedef struct {
   int surface_width;
   int surface_height;
   state_t state;
+  sound_effects_t sound;
 } animation_t;
 
 enum animation_mode_t {

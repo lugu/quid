@@ -32,22 +32,34 @@ add_library(cobj SHARED IMPORTED)
 set_target_properties(cobj PROPERTIES IMPORTED_LOCATION ${COBJ_LIBRARY})
 
 # Add source file.
-add_executable(quid src/game.c src/main.c src/animation.c)
+add_executable(quid src/game.c src/main.c src/animation.c src/sound.c)
 target_link_libraries(quid cgui cobj m)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(CAIRO REQUIRED cairo)
 
-if (CAIRO_FOUND)
-    include_directories(${CAIRO_INCLUDE_DIRS})
-    link_directories(${CAIRO_LIBRARY_DIRS})
-    target_link_libraries(quid ${CAIRO_LIBRARIES})
+pkg_check_modules(CAIRO REQUIRED cairo)
+if(CAIRO_FOUND)
+  include_directories(${CAIRO_INCLUDE_DIRS})
+  link_directories(${CAIRO_LIBRARY_DIRS})
+  target_link_libraries(quid ${CAIRO_LIBRARIES})
 else()
-    message(FATAL_ERROR "Cairo not found. Make sure they are installed.")
+  message(FATAL_ERROR "Cairo not found. Make sure they are installed.")
 endif()
+
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS})
+target_link_libraries(quid ${SDL2_LIBRARIES})
 
 # Set runtime library path and C23
 set_target_properties(quid PROPERTIES
           LINKER_FLAGS "-Wl,-rpath,${PROJECT_LIBRARY_DIR}"
           C_STANDARD 23)
 
+# Custom target for audio installation
+add_custom_target(
+  copy_audio_files
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/media/laser.wav" "${CMAKE_BINARY_DIR}"
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/media/explosion.wav" "${CMAKE_BINARY_DIR}"
+)
+
+add_dependencies(quid copy_audio_files)

@@ -269,7 +269,6 @@ static void update_spaceship_moving(state_t *state) {
   state->spaceship.spaceship_x = new_x;
   state->spaceship.spaceship_y = new_y;
 }
-
 static void update_spaceship_moving_to_center(state_t *state) {
   // Move the spaceship towards the center
   double dx = WINDOW_WIDTH / 2.0 - state->spaceship.spaceship_x;
@@ -303,7 +302,7 @@ static void update_explosion(state_t *state) {
   }
 }
 
-static void update_laser(state_t *state) {
+static void update_laser(state_t *state, sound_effects_t *sound) {
   if (state->laser.laser_active) {
     state->laser.laser_y -= state->laser.laser_speed;
     if (state->laser.laser_y <= WINDOW_HEIGHT / 2) {
@@ -311,13 +310,15 @@ static void update_laser(state_t *state) {
       if (state->spaceship.spaceship_state == SPACESHIP_MOVING_TO_CENTER) {
         state->explosion.explosion_active = true;
         state->spaceship.spaceship_state = SPACESHIP_EXPLODING;
+        play_laser_sound(sound);
+        play_explosion_sound(sound);
       }
     }
   }
 }
 
 static void update_animation(animation_t *animation, unsigned long delay) {
-  update_laser(&animation->state);
+  update_laser(&animation->state, &animation->sound);
   switch (animation->state.spaceship.spaceship_state) {
     case SPACESHIP_MOVING:
       update_spaceship_moving(&animation->state);
@@ -361,6 +362,8 @@ void init_animation(animation_t *animation, cgui_window *parent_window) {
 
   cgui_window_deactivate(animation->window);
   cgui_window_disable(animation->window);
+
+  init_sound_effects(&animation->sound);
 }
 
 void destroy_animation(animation_t *animation) {
@@ -368,6 +371,7 @@ void destroy_animation(animation_t *animation) {
   animation->window = NULL;
   cgui_grid_destroy(animation->grid);
   animation->grid = NULL;
+  destroy_sound_effects(&animation->sound);
 }
 
 void activate_animation(animation_t *animation){
@@ -396,6 +400,7 @@ void do_animation(animation_t *animation, enum animation_mode_t mode) {
       }
       break;
     case ANIMATION_FAILURE:
+      play_laser_sound(&animation->sound);
       if (animation->state.spaceship.spaceship_state == SPACESHIP_MOVING) {
         animation->state.laser.laser_active = true;
         animation->state.laser.laser_y = WINDOW_HEIGHT;
